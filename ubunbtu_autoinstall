@@ -1,0 +1,35 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: K8S-Master
+    username: sanjayks
+    password: "$6$KpFQQuKp$N.JD5O/OCQUlX/gkWl7JFTW2/aN31x3Kb/POMYvcsfQ5F78X7PBWz4LNeKPCRX69dROea4fjrCx9pXtS4F0/k0"  # Encrypted password
+  locale: en_US
+  timezone: Asia/Kolkata
+  keyboard:
+    layout: us
+    variant: ""
+  storage:
+    layout:
+      name: lvm
+  # Erase the disk and create the partitions automatically
+  storage:
+    config:
+      - {ptable: gpt, path: /dev/sda, preserve: false, name: '', grub_device: true, type: disk, id: disk-sda}
+      - {device: disk-sda, size: 1MB, flag: bios_grub, number: 1, type: partition, id: partition-0}
+      - {device: disk-sda, size: -1, flag: '', number: 2, type: partition, id: partition-1}
+      - {fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0}
+      - {device: format-0, path: /, type: mount, id: mount-0}
+  ssh:
+    install-server: true
+    authorized-keys: []
+  user-data:
+    disable_root: false
+  late-commands:
+    - curtin in-target --target=/target apt-get update
+    - curtin in-target --target=/target apt-get install -y openssh-server
+
+# Note:
+# The password is hashed using SHA-512. You can generate this hash using the following command:
+# `echo "W1nd0vv$" | mkpasswd -m sha-512 -s`
